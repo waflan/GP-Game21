@@ -27,7 +27,7 @@ public class PlayerControl : MonoBehaviour
     float camDist=1;
     Vector2 move =new Vector3();
     Vector3 movingVelocity=new Vector3();
-    bool onGround,jump,isRoll=false,befRoll,isDive,isMove;
+    bool onGround,jump,isRoll=false,befRoll,isDive,isMove,befGround;
     float jumpTime,rollTime;
     Vector3 GroundVelocity=new Vector3();
     Vector3 beforeUpVector=new Vector3();
@@ -50,7 +50,8 @@ public class PlayerControl : MonoBehaviour
     public float jumpMaxTime=1; // ジャンプの加速時間
     public float firstJumpForce=300; // ジャンプ初動の力
     public float secondJumpForce=200; // ジャンプ継続時の加速度
-    public float rollForce=300; // 飛び込みの力
+    public float rollCoolTime=1; // 前転のクールタイム
+    public float rollForce=300; // 前転の力
     public float diveForce=300; // 飛び込みの力
     
 
@@ -111,14 +112,20 @@ public class PlayerControl : MonoBehaviour
             // 前転＆しゃがみ
             if(Input.GetKey(keyConfig.roll)){
                 Vector3 horizontalVel=rig.velocity-(playerVectorUp.normalized*Vector3.Dot(playerVectorUp.normalized,rig.velocity));
-                if(isMove){
-                    if(Input.GetKeyDown(keyConfig.roll)){
-                        isRoll=true;
-                        rollTime=0.9f;
+                if(!isRoll){
+                    if(isMove){
+                        if(Input.GetKeyDown(keyConfig.roll)){
+                            isRoll=true;
+                            rollTime=rollCoolTime;
+                        }
+                    }else{
+                        if(!onGround&&Input.GetKeyDown(keyConfig.roll)){
+                            isRoll=true;
+                            rollTime=rollCoolTime;
+                        }
                     }
-                }else{
-                    
                 }
+                
             }
         }
         
@@ -243,9 +250,17 @@ public class PlayerControl : MonoBehaviour
                     animator.SetTrigger("Roll");
                     if(!onGround){
                         isDive=true;
-                        rig.AddForce(toRotate*Vector3.forward*diveForce);
+                        if(isMove){
+                            rig.AddForce(toRotate*Vector3.forward*diveForce);
+                        }else{
+                            rig.AddForce(transform.rotation*Vector3.forward*diveForce);
+                        }
                     }else{
-                        rig.AddForce(toRotate*Vector3.forward*rollForce);
+                        if(isMove){
+                            rig.AddForce(toRotate*Vector3.forward*rollForce);
+                        }else{
+                            rig.AddForce(transform.rotation*Vector3.forward*rollForce);
+                        }
                     }
                 }
                 if(rollTime<0){
@@ -280,11 +295,14 @@ public class PlayerControl : MonoBehaviour
                 if(jump){
                     animator.SetBool("Jump",true);
                 }else{
-                    animator.SetTrigger("Fall");
+                    if(befGround){
+                        animator.SetTrigger("Fall");
+                    }
                 }
             }
             animator.SetBool("Running",(move!=Vector2.zero));
             animator.SetBool("OnGround",onGround);
+            befGround=onGround;
 
             // Debug.Log(Input.GetKey(keyConfig.jump)+" "+jump+" "+ jumpTime+" "+Vector3.Dot(playerVectorUp.normalized,rig.velocity));
 
