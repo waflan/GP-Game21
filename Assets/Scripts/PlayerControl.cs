@@ -4,34 +4,41 @@ using UnityEngine;
 
 public class PlayerControl : MonoBehaviour
 {
-    KeyConfig keyConfig=new KeyConfig();
+    public KeyConfig keyConfig=new KeyConfig();
     public int controlMode=-1;
+    int befCtrlMode;
     public int playingMode;
     public bool actionable=true;
-    public Transform CamTransForm;
+    public Transform CamTransFormParent;
+    public Transform CamTransform;
 
     Rigidbody rig;
 
     public Animator animator = new Animator();
-    public CapsuleCollider characterCollider=new CapsuleCollider();
+    public CapsuleCollider characterCollider = new CapsuleCollider();
+    public Canvas Menu = new Canvas();
 
     // デバッグ用変数
-    
-    
+
+
 
     // ここからアクション用変数
 
         // ローカル変数
     float rx=0,ry=0; // カメラ方向(横,縦)
+    Vector2 rotOffset=new Vector2();
     bool cursorLock=true; // 
     float camDist=1;
     Vector2 move =new Vector3();
     Vector3 movingVelocity=new Vector3();
-    bool onGround,jump,isRoll=false,befRoll,isDive,isMove,befGround;
+    bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
     float jumpTime,rollTime;
     Vector3 GroundVelocity=new Vector3();
     Vector3 beforeUpVector=new Vector3();
     List<SkinnedMeshRenderer> skins=new List<SkinnedMeshRenderer>();
+    List<Transform> focusTargets=new List<Transform>();
+    public List<Transform> checkTargets=new List<Transform>();
+    Transform focusTarget,checkTarget,checkCamPos;
     float ccoliderHeight;
 
         // パブリック変数
@@ -53,17 +60,79 @@ public class PlayerControl : MonoBehaviour
     public float rollCoolTime=1; // 前転のクールタイム
     public float rollForce=300; // 前転の力
     public float diveForce=300; // 飛び込みの力
-    
+    public bool able2Check=false; // 調べる機能のフラグ(外部から切り替え)
 
     void Start(){
         rig=transform.GetComponent<Rigidbody>();
         beforeUpVector=playerVectorUp;
         skins.AddRange(animator.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>());
         ccoliderHeight=characterCollider.height;
+        befCtrlMode=controlMode;
     }
     void Update(){
 
-        if(actionable){
+        // 上方ベクトルへの回転
+        Quaternion UpVectorRotate = Quaternion.AngleAxis(Mathf.Rad2Deg*Mathf.Atan2(playerVectorUp.x,playerVectorUp.z),Vector3.up)*Quaternion.AngleAxis(Vector3.Angle(Vector3.up,playerVectorUp),Vector3.right);
+        
+        // メニュー表示
+        if(Input.GetKeyDown(keyConfig.menu)){
+            setMenu(isMenu^true);
+            
+        }
+        
+        // 操作モード切り替え
+        if(Input.GetKeyDown(keyConfig.modeChange)&&isMenu&&isCheck){
+            if(playingMode==0){
+                playingMode=1;
+            }else if(playingMode==1){
+                playingMode=0;
+            }
+        }
+
+        // フォーカス対象のリスト
+        focusTargets.RemoveAll(t=>t==null);
+        foreach (GameObject target in GameObject.FindGameObjectsWithTag("FocusTarget"))
+        {
+            if(!focusTargets.Contains(target.transform)){
+                focusTargets.Add(target.transform);
+            }
+        }
+
+        // 調べる対象のリスト
+        checkTargets.RemoveAll(t=>t==null);
+        foreach (GameObject target in GameObject.FindGameObjectsWithTag("CheckTarget"))
+        {
+            if(!checkTargets.Contains(target.transform)){
+                checkTargets.Add(target.transform);
+            }
+        }
+
+        // チェック切り替え
+        if(Input.GetKeyDown(keyConfig.check)){
+            // Debug.Log(isCheck);
+            if(isCheck){
+                isCheck=false;
+                controlMode=befCtrlMode;
+                hideShowMesh(true);
+            }else if(checkTargets.Count>0&&able2Check){
+                isCheck=true;
+                hideShowMesh(false);
+                befCtrlMode=controlMode;
+                controlMode=2;
+                Vector3 pos=this.transform.position;
+                checkTargets.Sort((t1,t2) => (int)((t1.position-pos).sqrMagnitude-(t2.position-pos).sqrMagnitude));
+                checkTarget=checkTargets[0];
+                if(checkTarget.GetComponent<CheckObj>()){
+                    checkCamPos=checkTarget.GetComponent<CheckObj>().child;
+                }else if(checkTarget.childCount==0){
+                    checkCamPos=checkTarget;
+                }else{
+                    checkCamPos=checkTarget.GetChild(0);
+                }
+            }
+        }
+
+        if(actionable&&!isMenu){
             // 移動量取得
                 // wsadキー移動
             move=Vector2.zero;
@@ -80,35 +149,63 @@ public class PlayerControl : MonoBehaviour
                 move.y-=1;
             }
             isMove=(move!=Vector2.zero);
-            // 回転情報の更新
+
+            // 回転量取得
                 // 矢印キー回転
+            Vector2 rMove=Vector2.zero;
             if(Input.GetKey(KeyCode.RightArrow)){
-                rx+=rotateSpeed.x*Time.deltaTime;
+                rMove.x+=rotateSpeed.x*Time.deltaTime;
             }
             if(Input.GetKey(KeyCode.LeftArrow)){
-                rx-=rotateSpeed.x*Time.deltaTime;
+                rMove.x-=rotateSpeed.x*Time.deltaTime;
             }
             if(Input.GetKey(KeyCode.UpArrow)){
-                ry-=rotateSpeed.y*Time.deltaTime;
+                rMove.y-=rotateSpeed.y*Time.deltaTime;
             }
             if(Input.GetKey(KeyCode.DownArrow)){
-                ry+=rotateSpeed.y*Time.deltaTime;
+                rMove.y+=rotateSpeed.y*Time.deltaTime;
             }
                 // マウス回転
             if(cursorLock){
-                rx+=Input.GetAxis("Mouse X")*mouseRotateSpeed.x;
-                ry-=Input.GetAxis("Mouse Y")*mouseRotateSpeed.y;
+                rMove.x+=Input.GetAxis("Mouse X")*mouseRotateSpeed.x;
+                rMove.y-=Input.GetAxis("Mouse Y")*mouseRotateSpeed.y;
             }
-            if(Mathf.Abs(ry)>90){
-                ry=ry<0?-90:90;
-            }
-            if(Mathf.Abs(rx)>180){
-                if(rx>0){
-                    rx-=360;
-                }else{
-                    rx+=360;
+
+            // フォーカスの切り替え
+            if(Input.GetKeyDown(keyConfig.focus)){
+                if(isFocus){
+                    isFocus=false;
+                    rotOffset=Vector2.zero;
+                }else if(focusTargets.Count>0){
+                    isFocus=true;
+                    Vector3 pos=this.transform.position;
+                    focusTargets.Sort((t1,t2)=> (int)((t1.position-pos).sqrMagnitude-(t2.position-pos).sqrMagnitude));
+                    focusTarget=focusTargets[0];
                 }
             }
+            
+            // 回転情報の更新
+            if(isFocus){
+                if(focusTarget==null){
+                    isFocus=false;
+                    rotOffset=Vector2.zero;
+                }else{
+                    Vector3 focusLocalVec = Quaternion.Inverse(UpVectorRotate)*(focusTarget.position-this.transform.position).normalized;
+                    rx=Mathf.Rad2Deg*Mathf.Atan2(focusLocalVec.x,focusLocalVec.z);
+                    ry=Mathf.Asin(focusLocalVec.y);
+                    rotOffset+=rMove;
+                    rotOffset.y=Mathf.Clamp(rotOffset.y,-30,30);
+                    rotOffset.x=Mathf.Clamp(rotOffset.x,-30,30);
+                    rx+=rotOffset.x;
+                    ry+=rotOffset.y;
+                }
+            }else{
+                rx+=rMove.x*(keyConfig.rotateInverseX?-1:1);
+                ry+=rMove.y*(keyConfig.rotateInverseY?-1:1);
+            }
+            ry=Mathf.Clamp(ry,-90,90);
+            rx=Mathf.Repeat(rx+180,360)-180;
+
             // 前転＆しゃがみ
             if(Input.GetKey(keyConfig.roll)){
                 Vector3 horizontalVel=rig.velocity-(playerVectorUp.normalized*Vector3.Dot(playerVectorUp.normalized,rig.velocity));
@@ -127,11 +224,7 @@ public class PlayerControl : MonoBehaviour
                 }
                 
             }
-        }
-        
-        // 操作モード切り替え
-        if(Input.GetKeyDown(keyConfig.modeChange)){
-            controlMode=(controlMode+1)%2;
+            
         }
 
         if(controlMode==-1){ // デバッグ用テスト
@@ -139,8 +232,8 @@ public class PlayerControl : MonoBehaviour
             // 指定ベクトル基準で回転
             Quaternion CamRotate = Quaternion.FromToRotation(Vector3.up,playerVectorUp)* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
             Quaternion toRotate = Quaternion.FromToRotation(Vector3.up,playerVectorUp)*Quaternion.AngleAxis(rx+Mathf.Rad2Deg*Mathf.Atan2(move.x,move.y),Vector3.up);
-            CamTransForm.rotation = CamRotate;
-            CamTransForm.position = this.transform.position+CamTransForm.rotation*(Vector3.back*5);
+            CamTransFormParent.rotation = CamRotate;
+            CamTransFormParent.position = this.transform.position+CamTransFormParent.rotation*(Vector3.back*5);
             this.transform.rotation =toRotate;
             if(move!=Vector2.zero){
                 rig.velocity=toRotate*Vector3.forward*speed;
@@ -151,6 +244,11 @@ public class PlayerControl : MonoBehaviour
 
         }
         else if(controlMode==0||controlMode==1){ // 一人称＆三人称視点操作
+
+            if(CamTransform.localPosition!=Vector3.zero){
+                CamTransform.localPosition=Vector3.Lerp(CamTransform.localPosition,Vector3.zero,10*Time.deltaTime);
+                CamTransform.localRotation=Quaternion.identity;
+            }
 
             // 軸が更新されたときにカメラ回転の値を更新
             if(beforeUpVector!=playerVectorUp){
@@ -166,10 +264,9 @@ public class PlayerControl : MonoBehaviour
             }
 
             // 指定ベクトル基準で回転
-            Quaternion UpVectorRotate = Quaternion.AngleAxis(Mathf.Rad2Deg*Mathf.Atan2(playerVectorUp.x,playerVectorUp.z),Vector3.up)*Quaternion.AngleAxis(Vector3.Angle(Vector3.up,playerVectorUp),Vector3.right);
             Quaternion CamRotate = UpVectorRotate* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
             Quaternion toRotate = UpVectorRotate*Quaternion.AngleAxis(rx+Mathf.Rad2Deg*Mathf.Atan2(move.x,move.y),Vector3.up);
-            CamTransForm.rotation = CamRotate;
+            CamTransFormParent.rotation = CamRotate;
             
             if(controlMode==0){ // 三人称視点の場合
                 hideShowMesh(true);
@@ -187,9 +284,9 @@ public class PlayerControl : MonoBehaviour
                 }else{
                     camDist=Mathf.Lerp(camDist,camToDist,4f*Time.deltaTime);
                 }
-                CamTransForm.position=this.transform.position+CamRotate*(Vector3.back*camDist);
+                CamTransFormParent.position=this.transform.position+CamRotate*(Vector3.back*camDist);
             }else{ // 一人称視点の場合
-                CamTransForm.position=this.transform.position;
+                CamTransFormParent.position=this.transform.position;
                 hideShowMesh(false);
             }
             
@@ -282,32 +379,35 @@ public class PlayerControl : MonoBehaviour
                 }
             }
             befRoll=isRoll;
-
-            // アニメーションの処理
-            if(onGround){
-                if(jump&&!animator.GetBool("Jump")){
-                    animator.SetBool("Jump",true);
-                }
-                if(!jump){
-                    animator.SetBool("Jump",false);
-                }
-            }else{
-                if(jump){
-                    animator.SetBool("Jump",true);
-                }else{
-                    if(befGround){
-                        animator.SetTrigger("Fall");
-                    }
-                }
-            }
-            animator.SetBool("Running",(move!=Vector2.zero));
-            animator.SetBool("OnGround",onGround);
-            befGround=onGround;
-
             // Debug.Log(Input.GetKey(keyConfig.jump)+" "+jump+" "+ jumpTime+" "+Vector3.Dot(playerVectorUp.normalized,rig.velocity));
 
         }
-        
+        else if(controlMode==2){
+            CamTransform.position=Vector3.Lerp(CamTransform.position,checkCamPos.position,10*Time.deltaTime);
+            CamTransform.rotation=Quaternion.Lerp(CamTransform.rotation,checkCamPos.rotation,10*Time.deltaTime);
+            rig.velocity=Vector3.zero;
+        }
+
+        // アニメーションの処理
+        if(onGround){
+            if(jump&&!animator.GetBool("Jump")){
+                animator.SetBool("Jump",true);
+            }
+            if(!jump){
+                animator.SetBool("Jump",false);
+            }
+        }else{
+            if(jump){
+                animator.SetBool("Jump",true);
+            }else{
+                if(befGround){
+                    animator.SetTrigger("Fall");
+                }
+            }
+        }
+        animator.SetBool("Running",(move!=Vector2.zero));
+        animator.SetBool("OnGround",onGround);
+        befGround=onGround;
     }
     private void OnTriggerStay(Collider collision)
     {
@@ -342,6 +442,17 @@ public class PlayerControl : MonoBehaviour
             }else{
                 mesh.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
             }
+        }
+    }
+
+    public void setMenu(bool b){
+        isMenu=b;
+        Menu.gameObject.SetActive(isMenu);
+        
+        if(isMenu){
+            Time.timeScale=0;
+        }else{
+            Time.timeScale=1;
         }
     }
 

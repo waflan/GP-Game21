@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
+  - Block
+  - FocusTarget
+  - CheckTarget
+  - Ball
+  - Killer
   layers:
   - Default
   - TransparentFX
@@ -12,8 +17,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - CamFront
+  - GimmickDimension
   - 
   - 
   - 
