@@ -35,7 +35,7 @@ public class BrockBreakerMng : MonoBehaviour
             for(int j=0;j<1;j++){
                 GameObject block = Instantiate(blockPrefub);
                 block.transform.parent=this.transform;
-                block.transform.position=pos+new Vector3((cx+i)*blocksSize.x/2,0,0);
+                block.transform.position=pos+new Vector3((cx+(float)i/width)*blocksSize.x,0,0);
                 blocks.Add(block.transform);
                 Debug.Log((cx+i));
             }

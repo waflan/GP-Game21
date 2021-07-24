@@ -10,6 +10,7 @@ TagManager:
   - CheckTarget
   - Ball
   - Killer
+  - GimmPlayer
   layers:
   - Default
   - TransparentFX
