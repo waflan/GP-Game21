@@ -11,6 +11,8 @@ TagManager:
   - Ball
   - Killer
   - GimmPlayer
+  - MappingObj
+  - Loader
   layers:
   - Default
   - TransparentFX
@@ -18,10 +20,10 @@ TagManager:
   - 
   - Water
   - UI
-  - CamFront
+  - CamFrontUI
   - GimmickDimension
-  - 
-  - 
+  - Value
+  - WorldMappingCollisions
   - 
   - 
   - 

@@ -21,6 +21,7 @@ public class CubeRain : MonoBehaviour
         if(time>cloneCoolTime){
             time-=cloneCoolTime;
             GameObject obj = Instantiate(prefubObject,randomVector3(p1,p2),Quaternion.identity);
+            obj.transform.SetParent(transform);
             Destroy(obj,objectDeathTime);
         }
     }

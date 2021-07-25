@@ -31,7 +31,7 @@ public class PlayerControl : MonoBehaviour
     float camDist=1;
     Vector2 move =new Vector3();
     Vector3 movingVelocity=new Vector3();
-    bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
+    [System.NonSerialized] public bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
     float jumpTime,rollTime;
     Vector3 GroundVelocity=new Vector3();
     Vector3 beforeUpVector=new Vector3();
@@ -62,7 +62,12 @@ public class PlayerControl : MonoBehaviour
     public float diveForce=300; // 飛び込みの力
     public bool able2Check=false; // 調べる機能のフラグ(外部から切り替え)
 
+    public bool stopOnStart=false;
+
     void Start(){
+        if(stopOnStart){
+            Time.timeScale=0;
+        }
         rig=transform.GetComponent<Rigidbody>();
         beforeUpVector=playerVectorUp;
         skins.AddRange(animator.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>());
@@ -130,6 +135,13 @@ public class PlayerControl : MonoBehaviour
                     checkCamPos=checkTarget.GetChild(0);
                 }
             }
+        }
+
+        // カーソル状態の変更
+        if(isCheck||isMenu){
+            Cursor.lockState=CursorLockMode.None;
+        }else if(actionable){
+            Cursor.lockState=CursorLockMode.Locked;
         }
 
         if(actionable&&!isMenu){
@@ -455,5 +467,15 @@ public class PlayerControl : MonoBehaviour
             Time.timeScale=1;
         }
     }
+    public void warpTo(Vector3 pos){
+        this.transform.position=pos;
+    }
 
+    public void ExitGame(){
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #elif UNITY_STANDALONE
+        UnityEngine.Application.Quit();
+        #endif
+    }
 }
