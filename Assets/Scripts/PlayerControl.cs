@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerControl : MonoBehaviour
 {
@@ -476,6 +477,8 @@ public class PlayerControl : MonoBehaviour
         UnityEditor.EditorApplication.isPlaying = false;
         #elif UNITY_STANDALONE
         UnityEngine.Application.Quit();
+        #elif UNITY_WEBGL
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         #endif
     }
 }
