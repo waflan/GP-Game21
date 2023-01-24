@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 126072833}
   - component: {fileID: 126072832}
   m_Layer: 9
-  m_Name: Loader
+  m_Name: Loader_Root
   m_TagString: Loader
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -194,8 +194,9 @@ GameObject:
   - component: {fileID: 1319761168}
   - component: {fileID: 1319761170}
   - component: {fileID: 1319761169}
+  - component: {fileID: 1319761171}
   m_Layer: 9
-  m_Name: Loader
+  m_Name: Loader_1
   m_TagString: Loader
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -243,6 +244,19 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 10, y: 10, z: 10}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!65 &1319761171
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319761167}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 23.62, y: 5, z: 24.19}
+  m_Center: {x: -93, y: 17.98, z: -10.4}
 --- !u!1 &1331650116
 GameObject:
   m_ObjectHideFlags: 0
@@ -505,7 +519,7 @@ GameObject:
   - component: {fileID: 1826159648}
   - component: {fileID: 1826159647}
   m_Layer: 9
-  m_Name: Loader (2)
+  m_Name: Loader_3
   m_TagString: Loader
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -626,7 +640,7 @@ GameObject:
   - component: {fileID: 1934056967}
   - component: {fileID: 1934056966}
   m_Layer: 9
-  m_Name: Loader (1)
+  m_Name: Loader_2
   m_TagString: Loader
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

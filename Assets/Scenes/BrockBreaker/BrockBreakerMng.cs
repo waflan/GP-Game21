@@ -8,7 +8,7 @@ public class BrockBreakerMng : MonoBehaviour
     
     public Camera cam;
     RenderTexture renderTexture;
-    public KeyConfig keyConfig=new KeyConfig();
+    public KeyConfig keyConfig;
     public GameObject ballPrefub;
     public GameObject blockPrefub;
     public Transform bar;
@@ -34,6 +34,7 @@ public class BrockBreakerMng : MonoBehaviour
     }
     void Start()
     {
+        keyConfig = GameObject.FindWithTag("Player").GetComponent<KeyConfig>();
         rigBar = bar.GetComponent<Rigidbody2D>();
         generateBall();
         Vector3 pos=this.transform.position;
@@ -75,6 +76,7 @@ public class BrockBreakerMng : MonoBehaviour
 
     void generateBall(){
         GameObject ball = Instantiate(ballPrefub,bar.position,Quaternion.identity);
+        ball.transform.SetParent(transform);
         ball.GetComponent<BB_Ball>().mng=this;
         ball.GetComponent<BB_Ball>().speed=ballSpd;
         float rot =Mathf.Deg2Rad * Random.Range(-30,30);

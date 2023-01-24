@@ -102,6 +102,7 @@ MonoBehaviour:
   mng: {fileID: 0}
   missAudio: {fileID: 2809522133260335326}
   hitAudio: {fileID: 7647907356576120099}
+  speed: 0
 --- !u!58 &1810166731606395481
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -148,10 +149,10 @@ AudioSource:
   m_GameObject: {fileID: 7865900511859009739}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 5786777416656502729, guid: eedc132c34573874494993e388b4d239, type: 2}
   m_audioClip: {fileID: 8300000, guid: ce7d65062aa026c499ae95511a1dc2b4, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.669
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -244,10 +245,10 @@ AudioSource:
   m_GameObject: {fileID: 7865900511859009739}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 5786777416656502729, guid: eedc132c34573874494993e388b4d239, type: 2}
   m_audioClip: {fileID: 8300000, guid: 848dc8bfb49fbb44e865ed65b2603c1a, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.633
   m_Pitch: 1
   Loop: 0
   Mute: 0

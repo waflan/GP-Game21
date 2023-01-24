@@ -5,12 +5,13 @@ using UnityEngine.SceneManagement;
 
 public class PlayerControl : MonoBehaviour
 {
-    public KeyConfig keyConfig=new KeyConfig();
+    public KeyConfig keyConfig;
     public int controlMode=-1;
     int befCtrlMode;
     public int playingMode;
     public bool actionable=true;
     public Transform CamTransFormParent;
+    Quaternion befCamParentRot;
     public Transform CamTransform;
 
     Rigidbody rig;
@@ -68,6 +69,11 @@ public class PlayerControl : MonoBehaviour
     void Start(){
         if(stopOnStart){
             Time.timeScale=0;
+        }
+        if(keyConfig==null){
+            if(!TryGetComponent<KeyConfig>(out keyConfig)){
+                keyConfig = gameObject.AddComponent<KeyConfig>();
+            }
         }
         rig=transform.GetComponent<Rigidbody>();
         beforeUpVector=playerVectorUp;
@@ -180,8 +186,8 @@ public class PlayerControl : MonoBehaviour
             }
                 // マウス回転
             if(cursorLock){
-                rMove.x+=Input.GetAxis("Mouse X")*mouseRotateSpeed.x;
-                rMove.y-=Input.GetAxis("Mouse Y")*mouseRotateSpeed.y;
+                rMove.x+=Input.GetAxis("Mouse X")*mouseRotateSpeed.x*Mathf.Pow(2,keyConfig.cursorSpeed);
+                rMove.y-=Input.GetAxis("Mouse Y")*mouseRotateSpeed.y*Mathf.Pow(2,keyConfig.cursorSpeed);
             }
 
             // フォーカスの切り替え
@@ -260,11 +266,17 @@ public class PlayerControl : MonoBehaviour
 
             if(CamTransform.localPosition!=Vector3.zero){
                 CamTransform.localPosition=Vector3.Lerp(CamTransform.localPosition,Vector3.zero,10*Time.deltaTime);
-                CamTransform.localRotation=Quaternion.identity;
+            }
+            if(CamTransform.localRotation!=Quaternion.identity){
+                CamTransform.localRotation=Quaternion.Lerp(CamTransform.localRotation,Quaternion.identity,5*Time.deltaTime);
             }
 
+            Debug.Log(Quaternion.Angle(CamTransFormParent.rotation,befCamParentRot) );
             // 軸が更新されたときにカメラ回転の値を更新
             if(beforeUpVector!=playerVectorUp){
+                Debug.Log("changed");
+                // CamTransform.position = CamTransFormParent.position;
+                // CamTransform.rotation = CamTransFormParent.rotation;
                 if(playerVectorUp.y>0){
                     rx-=Mathf.Rad2Deg*Mathf.Atan2(playerVectorUp.x,playerVectorUp.z)-Mathf.Rad2Deg*Mathf.Atan2(beforeUpVector.x,beforeUpVector.z);
                 }else{
@@ -275,6 +287,7 @@ public class PlayerControl : MonoBehaviour
                 
                 beforeUpVector=playerVectorUp;
             }
+            befCamParentRot = CamTransFormParent.rotation;
 
             // 指定ベクトル基準で回転
             Quaternion CamRotate = UpVectorRotate* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
@@ -297,7 +310,7 @@ public class PlayerControl : MonoBehaviour
                 }else{
                     camDist=Mathf.Lerp(camDist,camToDist,4f*Time.deltaTime);
                 }
-                CamTransFormParent.position=this.transform.position+CamRotate*(Vector3.back*camDist);
+                CamTransFormParent.position=this.transform.position+(CamRotate*Vector3.back)*camDist;
             }else{ // 一人称視点の場合
                 CamTransFormParent.position=this.transform.position;
                 hideShowMesh(false);
