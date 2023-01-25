@@ -134,6 +134,10 @@ PrefabInstance:
       propertyPath: cursorSpeedSlider
       value: 
       objectReference: {fileID: 1416505851}
+    - target: {fileID: 7933915684210786264, guid: 01d6e2f8b8d47164c90edc041f33fb19, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 13400000, guid: b2721c801ceedfc449ed1929bd28b83e, type: 2}
     - target: {fileID: 7933915684419163942, guid: 01d6e2f8b8d47164c90edc041f33fb19, type: 3}
       propertyPath: m_Name
       value: Player
@@ -293,7 +297,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 1079
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

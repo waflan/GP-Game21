@@ -11,7 +11,6 @@ public class PlayerControl : MonoBehaviour
     public int playingMode;
     public bool actionable=true;
     public Transform CamTransFormParent;
-    Quaternion befCamParentRot;
     public Transform CamTransform;
 
     Rigidbody rig;
@@ -33,7 +32,9 @@ public class PlayerControl : MonoBehaviour
     float camDist=1;
     Vector2 move =new Vector3();
     Vector3 movingVelocity=new Vector3();
-    [System.NonSerialized] public bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
+    
+    // [System.NonSerialized]
+    public bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
     float jumpTime,rollTime;
     Vector3 GroundVelocity=new Vector3();
     Vector3 beforeUpVector=new Vector3();
@@ -271,12 +272,8 @@ public class PlayerControl : MonoBehaviour
                 CamTransform.localRotation=Quaternion.Lerp(CamTransform.localRotation,Quaternion.identity,5*Time.deltaTime);
             }
 
-            Debug.Log(Quaternion.Angle(CamTransFormParent.rotation,befCamParentRot) );
             // 軸が更新されたときにカメラ回転の値を更新
             if(beforeUpVector!=playerVectorUp){
-                Debug.Log("changed");
-                // CamTransform.position = CamTransFormParent.position;
-                // CamTransform.rotation = CamTransFormParent.rotation;
                 if(playerVectorUp.y>0){
                     rx-=Mathf.Rad2Deg*Mathf.Atan2(playerVectorUp.x,playerVectorUp.z)-Mathf.Rad2Deg*Mathf.Atan2(beforeUpVector.x,beforeUpVector.z);
                 }else{
@@ -287,7 +284,6 @@ public class PlayerControl : MonoBehaviour
                 
                 beforeUpVector=playerVectorUp;
             }
-            befCamParentRot = CamTransFormParent.rotation;
 
             // 指定ベクトル基準で回転
             Quaternion CamRotate = UpVectorRotate* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
@@ -326,6 +322,8 @@ public class PlayerControl : MonoBehaviour
             }
             if(onGround){
                 rig.angularVelocity=Vector3.Lerp(rig.angularVelocity,Vector3.zero,Time.deltaTime/footGripTime);
+            }else if(isMove){
+                rig.angularVelocity=Vector3.zero;
             }
 
             // 移動方向に合わせプレイヤーの速度を更新
@@ -340,11 +338,14 @@ public class PlayerControl : MonoBehaviour
                 movingVelocity=Vector3.Lerp(movingVelocity,Vector3.zero,Time.deltaTime/(onGround?footGripTime:airGripTime));
             }
                 // 地上にいる間は元の速度を相殺する
-                if(onGround){
-                    velocity=Vector3.Lerp(velocity,GroundVelocity,Time.deltaTime/footGripTime);
-                }
+            if(onGround){
+                velocity=Vector3.Lerp(velocity,GroundVelocity,Time.deltaTime/footGripTime);
+            }
                 // 操作による速度を適用
             rig.velocity = velocity + movingVelocity;
+
+            // 地面で動いていない際に摩擦係数をつける
+            characterCollider.material.dynamicFriction=characterCollider.material.staticFriction=(onGround&&!isMove)?1:0;
 
             // ジャンプの処理
             if(onGround&&Input.GetKeyDown(keyConfig.jump)){
@@ -437,6 +438,7 @@ public class PlayerControl : MonoBehaviour
     }
     private void OnTriggerStay(Collider collision)
     {
+        // Debug.Log(collision.transform.name);
         if(collision.isTrigger){
 
         }else{
@@ -468,6 +470,7 @@ public class PlayerControl : MonoBehaviour
             }else{
                 mesh.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
             }
+            mesh.enabled=value;
         }
     }
 

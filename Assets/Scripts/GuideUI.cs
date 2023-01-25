@@ -13,6 +13,7 @@ public class GuideUI : MonoBehaviour
     {
         if(camTransform==null){
             camTransform = GameObject.FindGameObjectWithTag("MainCamera").transform;
+            
         }
         if(rotateTransform==null){
             if(transform.childCount!=0){
@@ -26,6 +27,9 @@ public class GuideUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(camTransform==null){
+            return;
+        }
         if((rotateTransform.position-camTransform.position).sqrMagnitude>=hideDistance*hideDistance){
             rotateTransform.gameObject.SetActive(false);
         }else{
