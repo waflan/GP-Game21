@@ -6,6 +6,7 @@
 
 # ビルド設定を除外する
 EditorBuildSettings.asset
+EditorUserSettings.asset
 
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
 #
