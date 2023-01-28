@@ -454,6 +454,10 @@ public class PlayerControl : MonoBehaviour
         }
         
     }
+    public void reloadSkins(){
+        skins.Clear();
+        skins.AddRange(animator.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>());
+    }
     private void OnTriggerExit(Collider collision)
     {
         if(collision.isTrigger){
@@ -462,7 +466,7 @@ public class PlayerControl : MonoBehaviour
             onGround=false;
         }
     }
-    void hideShowMesh(bool value){
+    public void hideShowMesh(bool value){
         foreach (SkinnedMeshRenderer mesh in skins)
         {
             if(value){

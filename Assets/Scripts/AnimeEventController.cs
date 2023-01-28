@@ -7,7 +7,8 @@ public class AnimeEventController : MonoBehaviour
     public Vector3 offset=new Vector3();
     void Start()
     {
-        
+        transform.localPosition=offset;
+        transform.localRotation=Quaternion.identity;
     }
 
     // Update is called once per frame
