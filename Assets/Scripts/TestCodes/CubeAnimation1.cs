@@ -4,21 +4,30 @@ using UnityEngine;
 
 public class CubeAnimation1 : MonoBehaviour
 {
+	public bool enableTransformUpdate=true;
     Rigidbody rig;
+    public Vector3 center=new Vector3(0,0,0);
+	public Vector3 up = Vector3.up;
+	public float radius=5;
+    public float rotateSpeed=10;
+	float nowRot=0;
 
     // Start is called before the first frame update
     void Start()
     {
         rig=GetComponent<Rigidbody>();
-        rig.velocity=new Vector3(5,0,0);
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        Vector3 vel = this.transform.position.normalized;
-        vel.y=0;
-        rig.velocity=Quaternion.AngleAxis(90,Vector3.up)*vel;
-        rig.angularVelocity=new Vector3(0,Mathf.Deg2Rad*10,0);
+		nowRot=Mathf.Repeat(nowRot+rotateSpeed*Time.fixedDeltaTime,360);
+		if(enableTransformUpdate){
+			transform.position = center+Quaternion.AngleAxis(nowRot,up)*Vector3.forward*radius;
+			transform.rotation = Quaternion.AngleAxis(nowRot+90,up);
+		}
+		
+		rig.velocity = Quaternion.AngleAxis(nowRot,up)*Vector3.right*radius;
+		rig.angularVelocity = Quaternion.FromToRotation(Vector3.up,up)*new Vector3(0,Mathf.Deg2Rad*rotateSpeed,0);
     }
 }
