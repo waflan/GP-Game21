@@ -7,6 +7,7 @@ public class DebuggingActions : MonoBehaviour
 {
     public TextMeshProUGUI textMeshPro;
     PlayerControl player;
+    public Transform test;
     void Start()
     {
         player = GameObject.FindWithTag("Player").GetComponent<PlayerControl>();
@@ -21,8 +22,12 @@ public class DebuggingActions : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        string textout = "";
-        textout += player.isRoll + ":" + player.onGround + ":" + player.jump;
-        textMeshPro.text = textout;
+        string result="";
+
+		Quaternion UpVectorRotate = Quaternion.AngleAxis(Mathf.Rad2Deg*Mathf.Atan2(player.playerUpVector.x,player.playerUpVector.z),Vector3.up)*Quaternion.AngleAxis(Vector3.Angle(Vector3.up,player.playerUpVector),Vector3.right);
+        result+=UpVectorRotate.ToString();
+        test.rotation=UpVectorRotate;
+
+        textMeshPro.text=result;
     }
 }
