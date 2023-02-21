@@ -10,7 +10,7 @@ public class PlayerControl : MonoBehaviour
 	int befCtrlMode;
 	public int playingMode;
 	public bool actionable=true;
-	public Transform CamTransFormParent;
+	public Transform CamTransformParent;
 	public Transform CamTransform;
 
 	Rigidbody rig;
@@ -35,7 +35,7 @@ public class PlayerControl : MonoBehaviour
 	Vector3 movingVelocity=new Vector3();
 	
 	[System.NonSerialized]
-	public bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck,isChangedGField;
+	public bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
 	[System.NonSerialized]
 	public float radiusUpVector;
 	float tensorUp;
@@ -103,7 +103,7 @@ public class PlayerControl : MonoBehaviour
 	void Update(){
 
 		// 上方ベクトルへの回転
-		Quaternion UpVectorRotate = Quaternion.AngleAxis(Mathf.Rad2Deg*Mathf.Atan2(playerUpVector.x,playerUpVector.z),Vector3.up)*Quaternion.AngleAxis(Vector3.Angle(Vector3.up,playerUpVector),Vector3.right);
+		Quaternion UpVectorRotate = RotateFromUpVector(playerUpVector);
 		// Quaternion UpVectorRotate = Quaternion.FromToRotation(Vector3.up,playerUpVector);
 
 		// メニュー表示
@@ -275,8 +275,8 @@ public class PlayerControl : MonoBehaviour
 			// 指定ベクトル基準で回転
 			Quaternion CamRotate = Quaternion.FromToRotation(Vector3.up,playerUpVector)* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
 			Quaternion toRotate = Quaternion.FromToRotation(Vector3.up,playerUpVector)*Quaternion.AngleAxis(rx+Mathf.Rad2Deg*Mathf.Atan2(move.x,move.y),Vector3.up);
-			CamTransFormParent.rotation = CamRotate;
-			CamTransFormParent.position = this.transform.position+CamTransFormParent.rotation*(Vector3.back*5);
+			CamTransformParent.rotation = CamRotate;
+			CamTransformParent.position = this.transform.position+CamTransformParent.rotation*(Vector3.back*5);
 			this.transform.rotation =toRotate;
 			if(move!=Vector2.zero){
 				rig.velocity=toRotate*Vector3.forward*speed;
@@ -313,7 +313,7 @@ public class PlayerControl : MonoBehaviour
 			// 指定ベクトル基準で回転
 			Quaternion CamRotate = UpVectorRotate* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
 			Quaternion toRotate = UpVectorRotate*Quaternion.AngleAxis(rx+moveDirection,Vector3.up);
-			CamTransFormParent.rotation = CamRotate;
+			CamTransformParent.rotation = CamRotate;
 			
 			if(controlMode==0){ // 三人称視点の場合
 				hideShowMesh(true);
@@ -331,12 +331,13 @@ public class PlayerControl : MonoBehaviour
 				}else{
 					camDist=Mathf.Lerp(camDist,camToDist,4f*Time.deltaTime);
 				}
-				CamTransFormParent.position=this.transform.position+(CamRotate*Vector3.back)*camDist;
+				CamTransformParent.position=this.transform.position+(CamRotate*Vector3.back)*camDist;
 			}else{ // 一人称視点の場合
-				CamTransFormParent.position=this.transform.position;
+				CamTransformParent.position=this.transform.position;
 				hideShowMesh(false);
 			}
 			
+			// Debug.Log(positionToCamRotate(CamTransFormParent.position,transform.position,playerUpVector)+$":{rx},{ry}");
 
 			// 移動方向に合わせてプレイヤーを回転する
 			if(isMove){
@@ -535,6 +536,10 @@ public class PlayerControl : MonoBehaviour
 		#endif
 	}
 
+	Quaternion RotateFromUpVector(Vector3 up){
+        return Quaternion.AngleAxis(Mathf.Rad2Deg*Mathf.Atan2(up.x,up.z),Vector3.up)*Quaternion.AngleAxis(Vector3.Angle(Vector3.up,up),Vector3.right);
+    }
+
 	float nextLocalRot(float localRot,float moveDir,Vector3 nowUp,Vector3 befUp){
         float result=Mathf.Repeat(localRot+moveDir+180,360)-180;
 
@@ -564,4 +569,26 @@ public class PlayerControl : MonoBehaviour
         }
         return Mathf.Repeat(result-moveDir+180,360)-180;
     }
+
+	Vector2 positionToCamRotate(Vector3 camPos,Vector3 targetPos,Vector3 up){
+		Vector2 result = new Vector2();
+		Vector3 pos = targetPos-camPos;
+		Quaternion upRotate = RotateFromUpVector(up);
+		pos = Quaternion.Inverse(upRotate)*pos;
+		result.x = Mathf.Rad2Deg*Mathf.Atan2(pos.x,pos.z);
+		result.y = Vector3.Angle(Vector3.up,pos)-90;
+		return result;
+	}
+	public void setUpVector(Vector3 upVector,bool isCameraStatic=false){
+		playerUpVector=upVector;
+		if(isCameraStatic){
+			beforeUpVector=playerUpVector;
+			Vector2 camRot = positionToCamRotate(CamTransform.position,transform.position,playerUpVector);
+			rx=camRot.x;
+			ry=camRot.y;
+			Quaternion CamRotate = RotateFromUpVector(upVector)* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
+			
+			CamTransform.localRotation *= Quaternion.Inverse(CamRotate)*CamTransform.rotation;
+		}
+	}
 }

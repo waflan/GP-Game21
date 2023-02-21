@@ -803,8 +803,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.45, y: 1.67, z: 1.45}
-  m_Center: {x: 0, y: -0.86, z: 0}
+  m_Size: {x: 1.45, y: 0.8241398, z: 1.45}
+  m_Center: {x: 0, y: -0.43706995, z: 0}
 --- !u!1 &491302358
 GameObject:
   m_ObjectHideFlags: 0
@@ -948,6 +948,9 @@ MonoBehaviour:
   enableUpdateTiles: 1
   textureName: _MainTex
   targetType: 0
+  mesh: {fileID: 0}
+  image: {fileID: 0}
+  sourceType: 0
   cam: {fileID: 801162603}
   renderTex: {fileID: 8400000, guid: cfe18bbc909555146aad134990763e51, type: 2}
   tiling: {x: 1, y: 0.5}
@@ -1042,8 +1045,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519484779}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.47, y: 49.61, z: 0}
-  m_LocalScale: {x: 20, y: 1, z: 20}
+  m_LocalPosition: {x: -0.47, y: 40.11, z: 0}
+  m_LocalScale: {x: 20, y: 20, z: 20}
   m_Children: []
   m_Father: {fileID: 930907126}
   m_RootOrder: 3
@@ -1080,7 +1083,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9514ac7dfe03b2b43b408e47e421ad56, type: 2}
+  - {fileID: 2100000, guid: 7bf002e4eb1e4a34197ee6617cb43c76, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1289,6 +1292,9 @@ MonoBehaviour:
   enableUpdateTiles: 1
   textureName: 
   targetType: 0
+  mesh: {fileID: 0}
+  image: {fileID: 0}
+  sourceType: 0
   cam: {fileID: 801162603}
   renderTex: {fileID: 8400000, guid: cfe18bbc909555146aad134990763e51, type: 2}
   tiling: {x: 1, y: 0.5}
@@ -1573,8 +1579,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.45, y: 1.67, z: 1.45}
-  m_Center: {x: 0, y: -0.86, z: 0}
+  m_Size: {x: 1.45, y: 0.8241398, z: 1.45}
+  m_Center: {x: 0, y: -0.43706995, z: 0}
 --- !u!1001 &753726228
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1836,8 +1842,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.45, y: 1.67, z: 1.45}
-  m_Center: {x: 0, y: -0.86, z: 0}
+  m_Size: {x: 1.45, y: 0.8241398, z: 1.45}
+  m_Center: {x: 0, y: -0.43706995, z: 0}
 --- !u!1001 &832486908
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2158,7 +2164,8 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: b2e24c019d2d27748802eea3b97c6b01, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1253940164275772369, guid: 8ed2aea73fd9c3a4e9919e6c3d712da2, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 8ed2aea73fd9c3a4e9919e6c3d712da2, type: 3}
 --- !u!4 &907828737 stripped
 Transform:
@@ -2181,8 +2188,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 2.578752, y: 1.7841715, z: 2.7764134}
-  m_Center: {x: -0.78937614, y: -0.3920862, z: -0.28415427}
+  m_Size: {x: 2.578752, y: 1.4697517, z: 2.7764134}
+  m_Center: {x: -0.78937614, y: -0.12919872, z: -0.28415427}
 --- !u!1001 &913093889
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2764,8 +2771,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.45, y: 1.67, z: 1.45}
-  m_Center: {x: 0, y: -0.86, z: 0}
+  m_Size: {x: 1.45, y: 0.8241398, z: 1.45}
+  m_Center: {x: 0, y: -0.43706995, z: 0}
 --- !u!1 &1217841927
 GameObject:
   m_ObjectHideFlags: 0
@@ -4285,5 +4292,5 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.44, y: 0.87, z: 1}
-  m_Center: {x: 0, y: -0.41, z: 0}
+  m_Size: {x: 1.44, y: 0.6031693, z: 1}
+  m_Center: {x: 0, y: -0.27658466, z: 0}
