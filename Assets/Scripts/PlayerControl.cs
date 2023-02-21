@@ -31,6 +31,7 @@ public class PlayerControl : MonoBehaviour
 	bool cursorLock=true; // 
 	float camDist=1;
 	Vector2 move =new Vector3();
+	float moveDirection,befMoveDirection=0;
 	Vector3 movingVelocity=new Vector3();
 	
 	[System.NonSerialized]
@@ -187,6 +188,8 @@ public class PlayerControl : MonoBehaviour
 				move.y-=1;
 			}
 			isMove=(move!=Vector2.zero);
+			befMoveDirection=moveDirection;
+			moveDirection=Mathf.Rad2Deg*Mathf.Atan2(move.x,move.y);
 
 			// 回転量取得
 				// 矢印キー回転
@@ -293,18 +296,13 @@ public class PlayerControl : MonoBehaviour
 
 			// 軸が更新されたときにカメラ回転の値を更新
 			if(beforeUpVector!=playerUpVector){
-				// Vector3 localUp = UpVectorRotate*playerUpVector;
-				// rx-=Mathf.Rad2Deg*Mathf.Atan2(localUp.x,localUp.z);
-
-				// rx-=Mathf.Rad2Deg*Mathf.Atan2(playerUpVector.x,playerUpVector.z)-Mathf.Rad2Deg*Mathf.Atan2(beforeUpVector.x,beforeUpVector.z);
-
-				if(playerUpVector.y>0){
-					rx-=Mathf.Rad2Deg*Mathf.Atan2(playerUpVector.x,playerUpVector.z)-Mathf.Rad2Deg*Mathf.Atan2(beforeUpVector.x,beforeUpVector.z);
-				}else{
-					rx+=Mathf.Rad2Deg*Mathf.Atan2(playerUpVector.x,playerUpVector.z)-Mathf.Rad2Deg*Mathf.Atan2(beforeUpVector.x,beforeUpVector.z);
-				}
-				float changeAngle = Vector3.Angle(playerUpVector,beforeUpVector)*Mathf.Deg2Rad;
-				// this.transform.position-=playerVectorUp*(rig.velocity.magnitude*Mathf.Sin(changeAngle)*0.05f);
+				// if(playerUpVector.y>0){
+				// 	rx-=Mathf.Rad2Deg*Mathf.Atan2(playerUpVector.x,playerUpVector.z)-Mathf.Rad2Deg*Mathf.Atan2(beforeUpVector.x,beforeUpVector.z);
+				// }else{
+				// 	rx+=Mathf.Rad2Deg*Mathf.Atan2(playerUpVector.x,playerUpVector.z)-Mathf.Rad2Deg*Mathf.Atan2(beforeUpVector.x,beforeUpVector.z);
+				// }
+				
+				rx=nextLocalRot(rx,befMoveDirection,playerUpVector,beforeUpVector);
 				transform.rotation*=Quaternion.FromToRotation(beforeUpVector,playerUpVector);
 				
 				beforeUpVector=playerUpVector;
@@ -312,7 +310,7 @@ public class PlayerControl : MonoBehaviour
 
 			// 指定ベクトル基準で回転
 			Quaternion CamRotate = UpVectorRotate* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
-			Quaternion toRotate = UpVectorRotate*Quaternion.AngleAxis(rx+Mathf.Rad2Deg*Mathf.Atan2(move.x,move.y),Vector3.up);
+			Quaternion toRotate = UpVectorRotate*Quaternion.AngleAxis(rx+moveDirection,Vector3.up);
 			CamTransFormParent.rotation = CamRotate;
 			
 			if(controlMode==0){ // 三人称視点の場合
@@ -534,4 +532,34 @@ public class PlayerControl : MonoBehaviour
 		SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 		#endif
 	}
+
+	float nextLocalRot(float localRot,float moveDir,Vector3 nowUp,Vector3 befUp){
+        float result=Mathf.Repeat(localRot+moveDir+180,360)-180;
+
+        float lati1,lati2,between;
+        lati1 = (90-Vector3.Angle(Vector3.down,befUp))*Mathf.Deg2Rad;
+        lati2 = (90-Vector3.Angle(Vector3.down,nowUp))*Mathf.Deg2Rad;
+        between = Vector3.Angle(befUp,nowUp)*Mathf.Deg2Rad;
+
+        if(lati1!=lati2){
+            float dir1,dir2;
+            dir1 = Mathf.Acos((Mathf.Sin(lati2)-Mathf.Sin(lati1)*Mathf.Cos(between))/(Mathf.Cos(lati1)*Mathf.Sin(between)));
+            dir2 = Mathf.Acos((Mathf.Sin(lati2)*Mathf.Cos(between)-Mathf.Sin(lati1))/(Mathf.Cos(lati2)*Mathf.Sin(between)));
+            if(result>0){
+                result+=(dir2-dir1)*Mathf.Rad2Deg;
+            }else{
+                result-=(dir2-dir1)*Mathf.Rad2Deg;
+            }
+            if(float.IsNaN(dir1)||float.IsNaN(dir2)){
+                float deltaHolAngle = (Mathf.Rad2Deg*Mathf.Atan2(nowUp.x,nowUp.z)-Mathf.Rad2Deg*Mathf.Atan2(befUp.x,befUp.z));
+                deltaHolAngle = Mathf.Repeat(deltaHolAngle+180,360)-180;
+                if(nowUp.y>0){
+                    result=localRot+moveDir-deltaHolAngle;
+                }else{
+                    result=localRot+moveDir+deltaHolAngle;
+                }
+            }
+        }
+        return Mathf.Repeat(result-moveDir+180,360)-180;
+    }
 }
