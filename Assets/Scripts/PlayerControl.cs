@@ -26,10 +26,11 @@ public class PlayerControl : MonoBehaviour
 	// ここからアクション用変数
 
 		// ローカル変数
-	public float rx=0,ry=0; // カメラ方向(横,縦)
+	float rx=0,ry=0; // カメラ方向(横,縦)
 	Vector2 rotOffset=new Vector2();
 	bool cursorLock=true; // 
 	float camDist=1;
+	bool doStop1fCam=false;
 	Vector2 move =new Vector3();
 	float moveDirection,befMoveDirection=0;
 	Vector3 movingVelocity=new Vector3();
@@ -60,6 +61,8 @@ public class PlayerControl : MonoBehaviour
 	public Vector2 rotateSpeed=new Vector2(270,180); // カメラ回転速度
 	public Vector2 mouseRotateSpeed=new Vector2(5,5); // マウスでのカメラ回転速度
 	public Vector2 camDistanceRange=new Vector2(1,10); // カメラの距離範囲
+	[Range(-2,2)]
+	public float camUpOffset = 0.5f; //カメラの中心を上にずらす量を指定
 	public Vector3 playerUpVector=Vector3.up; // プレイヤーの上方向(デフォルト：y軸方向)
 	[Range (0.1f,5)]
 	public float jumpMaxTime=1; // ジャンプの加速時間
@@ -288,6 +291,8 @@ public class PlayerControl : MonoBehaviour
 		}
 		else if(controlMode==0||controlMode==1){ // 一人称＆三人称視点操作
 
+			// 1f子カメラを止める(座標を一次保存＆最後戻す)
+			Vector3 CamPosOnStart= CamTransform.position;
 			// ずれた子カメラの座標＆回転を視点へ遷移させる。
 			if(CamTransform.localPosition!=Vector3.zero){
 				CamTransform.localPosition=Vector3.Lerp(CamTransform.localPosition,Vector3.zero,10*Time.deltaTime);
@@ -331,10 +336,15 @@ public class PlayerControl : MonoBehaviour
 				}else{
 					camDist=Mathf.Lerp(camDist,camToDist,4f*Time.deltaTime);
 				}
-				CamTransformParent.position=this.transform.position+(CamRotate*Vector3.back)*camDist;
+				CamTransformParent.position=this.transform.position+playerUpVector*((90-Mathf.Abs(ry))/90)*camUpOffset+(CamRotate*Vector3.back)*camDist;
 			}else{ // 一人称視点の場合
 				CamTransformParent.position=this.transform.position;
 				hideShowMesh(false);
+			}
+			// カメラを1f止める場合子カメラを前フレームに戻す
+			if(doStop1fCam){
+				CamTransform.position=CamPosOnStart;
+				doStop1fCam=false;
 			}
 			
 			// Debug.Log(positionToCamRotate(CamTransFormParent.position,transform.position,playerUpVector)+$":{rx},{ry}");
@@ -587,7 +597,7 @@ public class PlayerControl : MonoBehaviour
 			rx=camRot.x;
 			ry=camRot.y;
 			Quaternion CamRotate = RotateFromUpVector(upVector)* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
-			
+			doStop1fCam=true;
 			CamTransform.localRotation *= Quaternion.Inverse(CamRotate)*CamTransform.rotation;
 		}
 	}
