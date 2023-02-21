@@ -171,13 +171,12 @@ MonoBehaviour:
   controlMode: 0
   playingMode: 0
   actionable: 1
-  CamTransFormParent: {fileID: 0}
+  CamTransformParent: {fileID: 0}
   CamTransform: {fileID: 0}
   animator: {fileID: 7933915682855732168}
   characterCollider: {fileID: 7933915684210786264}
   Menu: {fileID: 0}
-  rx: 0
-  ry: 0
+  fieldAngVelocity: {x: 0, y: 0, z: 0}
   checkTargets: []
   speed: 7
   footGripTime: 0.1
@@ -185,8 +184,9 @@ MonoBehaviour:
   rotateTime: 0.1
   rotateSpeed: {x: 270, y: 180}
   mouseRotateSpeed: {x: 5, y: 5}
-  camDistanceRange: {x: 0.75, y: 4}
-  playerVectorUp: {x: 0, y: 1, z: 0}
+  camDistanceRange: {x: 0.75, y: 3}
+  camUpOffset: 0.5
+  playerUpVector: {x: 0, y: 1, z: 0}
   jumpMaxTime: 1
   firstJumpForce: 250
   secondJumpForce: 220
