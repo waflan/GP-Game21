@@ -78,11 +78,13 @@ public class RotateMoveTest : MonoBehaviour
         ry+=rMove.y;
         ry=Mathf.Clamp(ry,-90,90);
         rx=Mathf.Repeat(rx+180,360)-180;
-
+        
+        #if UNITY_EDITOR
         if(Input.GetKeyDown(KeyCode.Space)){
             UnityEditor.EditorApplication.isPaused = true;
         }
-
+        #endif
+        
         // 上方ベクトルへの回転
         Quaternion UpVectorRotate = RotateFromUpVector(playerUpVector);
         // Quaternion UpVectorRotate = Quaternion.AngleAxis(Mathf.Rad2Deg*Mathf.Atan2(playerUpVector.x,playerUpVector.z),Vector3.up)*Quaternion.AngleAxis(Vector3.Angle(Vector3.up,playerUpVector),Vector3.right);
