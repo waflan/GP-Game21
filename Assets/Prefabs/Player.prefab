@@ -1,18 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &7784906994820673765
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7933915682848452924}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edeb40fc85e62bc47b1f45de945e872d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  offset: {x: 0, y: -0.5, z: 0}
 --- !u!1 &7933915682963057865
 GameObject:
   m_ObjectHideFlags: 0
@@ -189,16 +176,8 @@ MonoBehaviour:
   animator: {fileID: 7933915682855732168}
   characterCollider: {fileID: 7933915684210786264}
   Menu: {fileID: 0}
-  onGround: 0
-  jump: 0
-  isRoll: 0
-  befRoll: 0
-  isDive: 0
-  isMove: 0
-  befGround: 0
-  isMenu: 0
-  isFocus: 0
-  isCheck: 0
+  rx: 0
+  ry: 0
   checkTargets: []
   speed: 7
   footGripTime: 0.1
@@ -329,11 +308,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9845e87891cdf564aa7264b2bb77c847, type: 3}
---- !u!1 &7933915682848452924 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6711236158342364106, guid: 9845e87891cdf564aa7264b2bb77c847, type: 3}
-  m_PrefabInstance: {fileID: 3691254037079247606}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7933915682848288220 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6711236158342784810, guid: 9845e87891cdf564aa7264b2bb77c847, type: 3}

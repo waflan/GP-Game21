@@ -5,7 +5,9 @@ using UnityEngine;
 public class Planet : MonoBehaviour
 {
     public Vector3 defaultUp=Vector2.up;
-    public float gravityPower=600;
+    float gravityPower=Physics.gravity.magnitude;
+    public float gravityPowerScale = 1;
+    public float radius=1;
     // Start is called before the first frame update
     void Start()
     {
@@ -25,6 +27,8 @@ public class Planet : MonoBehaviour
             Rigidbody objRig = collision.GetComponent<Rigidbody>();
             objRig.useGravity=false;
             if(collision.GetComponent<PlayerControl>()){
+                PlayerControl pctrl=collision.GetComponent<PlayerControl>();
+                pctrl.isChangedGField=true;
                 // Debug.Log("Enter Player");
             }
         }
@@ -35,10 +39,12 @@ public class Planet : MonoBehaviour
             Rigidbody objRig = collision.GetComponent<Rigidbody>();
             objRig.useGravity=false;
             Vector3 toCenter = (collision.transform.position-this.transform.position).normalized;
-            objRig.AddForce(-toCenter*gravityPower*Time.deltaTime);
+            objRig.AddForce(-toCenter*gravityPower,ForceMode.Acceleration);
             if(collision.GetComponent<PlayerControl>()){
                 PlayerControl pctrl=collision.GetComponent<PlayerControl>();
-                pctrl.playerVectorUp=toCenter;
+                pctrl.radiusUpVector=radius;
+                pctrl.playerUpVector=toCenter;
+				// this.transform.position-=playerVectorUp*(rig.velocity.magnitude*Mathf.Sin(changeAngle)*0.05f);
             }
         }
     }
@@ -49,7 +55,8 @@ public class Planet : MonoBehaviour
             objRig.useGravity=true;
             if(collision.GetComponent<PlayerControl>()){
                 PlayerControl pctrl=collision.GetComponent<PlayerControl>();
-                pctrl.playerVectorUp=defaultUp;
+                pctrl.playerUpVector=defaultUp;
+                pctrl.isChangedGField=true;
             }
         }
     }
