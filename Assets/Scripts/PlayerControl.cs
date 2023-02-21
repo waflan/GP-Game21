@@ -188,7 +188,9 @@ public class PlayerControl : MonoBehaviour
 				move.y-=1;
 			}
 			isMove=(move!=Vector2.zero);
-			befMoveDirection=moveDirection;
+			if(isMove){
+				befMoveDirection=moveDirection;
+			}
 			moveDirection=Mathf.Rad2Deg*Mathf.Atan2(move.x,move.y);
 
 			// 回転量取得
