@@ -210,6 +210,10 @@ PrefabInstance:
       propertyPath: CamTransFormParent
       value: 
       objectReference: {fileID: 706945507}
+    - target: {fileID: 7933915684419163965, guid: 01d6e2f8b8d47164c90edc041f33fb19, type: 3}
+      propertyPath: CamTransformParent
+      value: 
+      objectReference: {fileID: 706945507}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 01d6e2f8b8d47164c90edc041f33fb19, type: 3}
 --- !u!114 &215378076 stripped
