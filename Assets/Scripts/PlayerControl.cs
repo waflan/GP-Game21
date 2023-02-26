@@ -17,6 +17,7 @@ public class PlayerControl : MonoBehaviour
 
 	public Animator animator = new Animator();
 	public CapsuleCollider characterCollider = new CapsuleCollider();
+	public PlayerSquatTrigger SquatTrigger;
 	public Canvas Menu = new Canvas();
 
 	// デバッグ用変数
@@ -35,8 +36,8 @@ public class PlayerControl : MonoBehaviour
 	float moveDirection,befMoveDirection=0;
 	Vector3 movingVelocity=new Vector3();
 	
-	[System.NonSerialized]
-	public bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
+	// [System.NonSerialized]
+	public bool onGround,jump,isRoll,befRoll,isSquat,isSquatRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
 	[System.NonSerialized]
 	public float radiusUpVector;
 	float tensorUp;
@@ -51,7 +52,8 @@ public class PlayerControl : MonoBehaviour
 	float ccoliderHeight;
 
 		// パブリック変数
-	public float speed=10; // 移動速度
+	public float moveSpeed=7; // 移動速度
+	public float squatMoveSpeed=2; // しゃがみ移動速度
 	[Range (0,1)]
 	public float footGripTime=.1f; // 地上での移動速度更新にかかる時間＆慣性速度の抵抗
 		[Range (0,3)]
@@ -68,7 +70,8 @@ public class PlayerControl : MonoBehaviour
 	public float jumpMaxTime=1; // ジャンプの加速時間
 	public float firstJumpForce=300; // ジャンプ初動の力
 	public float secondJumpForce=200; // ジャンプ継続時の加速度
-	public float rollCoolTime=1; // 前転のクールタイム
+	public float rollCoolTime=.8f; // 前転のクールタイム
+	public float squatRollCoolTime=.4f; // 前転のクールタイム
 	public float rollForce=300; // 前転の力
 	public float diveForce=300; // 飛び込みの力
 	public bool able2Check=false; // 調べる機能のフラグ(外部から切り替え)
@@ -254,21 +257,34 @@ public class PlayerControl : MonoBehaviour
 
 			// 前転＆しゃがみ
 			if(Input.GetKey(keyConfig.roll)){
-				Vector3 horizontalVel=rig.velocity-(playerUpVector.normalized*Vector3.Dot(playerUpVector.normalized,rig.velocity));
+				// Vector3 horizontalVel=rig.velocity-(playerUpVector.normalized*Vector3.Dot(playerUpVector.normalized,rig.velocity));
 				if(!isRoll){
 					if(isMove){
-						if(Input.GetKeyDown(keyConfig.roll)){
+						if(Input.GetKeyDown(keyConfig.roll)&&!isSquat){
 							isRoll=true;
 							rollTime=rollCoolTime;
+						}else if(isSquat&&Input.GetKeyDown(keyConfig.jump)){
+							isRoll=isSquatRoll=true;
+							rollTime=squatRollCoolTime;
 						}
 					}else{
 						if(!onGround&&Input.GetKeyDown(keyConfig.roll)){
 							isRoll=true;
 							rollTime=rollCoolTime;
+						}else if(SquatTrigger.isOn&&Input.GetKeyDown(keyConfig.jump)){
+							isRoll=isSquatRoll=true;
+							rollTime=squatRollCoolTime;
 						}
 					}
 				}
-				
+				isSquat=onGround;
+			}else{
+				if(!isRoll&&isSquat&&Input.GetKeyDown(keyConfig.jump)){
+					// Debug.Log("hoge");
+					isRoll=isSquatRoll=true;
+					rollTime=squatRollCoolTime;
+				}
+				isSquat=onGround&&SquatTrigger.isOn;
 			}
 			
 		}
@@ -282,7 +298,7 @@ public class PlayerControl : MonoBehaviour
 			CamTransformParent.position = this.transform.position+CamTransformParent.rotation*(Vector3.back*5);
 			this.transform.rotation =toRotate;
 			if(move!=Vector2.zero){
-				rig.velocity=toRotate*Vector3.forward*speed;
+				rig.velocity=toRotate*Vector3.forward*moveSpeed;
 			}else{
 				rig.velocity=Vector3.zero;
 			}
@@ -367,9 +383,11 @@ public class PlayerControl : MonoBehaviour
 				// 操作による速度を除く
 			Vector3 velocity = rig.velocity-movingVelocity;
 				// 操作による速度を更新
-			if(isMove){
+			if((isMove&&!(isSquat&&!isRoll))||(SquatTrigger.isOn&&isRoll)){
 				// movingVelocity=toRotate*Vector3.forward*speed;
-				movingVelocity=Vector3.Lerp(movingVelocity,toRotate*Vector3.forward*speed,Time.deltaTime/(onGround?footGripTime:airGripTime));
+				movingVelocity=Vector3.Lerp(movingVelocity,toRotate*Vector3.forward*moveSpeed,Time.deltaTime/(onGround?footGripTime:airGripTime));
+			}else if(isMove){
+				movingVelocity=Vector3.Lerp(movingVelocity,toRotate*Vector3.forward*squatMoveSpeed,Time.deltaTime/(onGround?footGripTime:airGripTime));
 			}else{
 				// movingVelocity=Vector3.zero;
 				movingVelocity=Vector3.Lerp(movingVelocity,Vector3.zero,Time.deltaTime/(onGround?footGripTime:airGripTime));
@@ -385,7 +403,7 @@ public class PlayerControl : MonoBehaviour
 			characterCollider.material.dynamicFriction=characterCollider.material.staticFriction=(onGround&&!isMove)?1:0;
 
 			// ジャンプの処理
-			if(onGround&&Input.GetKeyDown(keyConfig.jump)){
+			if(onGround&&((!isSquat||!isMove)&&!SquatTrigger.isOn)&&Input.GetKeyDown(keyConfig.jump)){
 				jump=true;
 				jumpTime=jumpMaxTime;
 				onGround=false;
@@ -408,8 +426,7 @@ public class PlayerControl : MonoBehaviour
 
 			// 前転の処理
 			if(isRoll){
-				characterCollider.height=0;
-				characterCollider.center=new Vector3(0,characterCollider.radius-ccoliderHeight/2,0);
+				minimizeCollider(true);
 				if(!befRoll){
 					animator.SetTrigger("Roll");
 					if(!onGround){
@@ -427,10 +444,15 @@ public class PlayerControl : MonoBehaviour
 						}
 					}
 				}
-				if(rollTime<0){
+				if(animator.GetCurrentAnimatorStateInfo(0).IsName("SquatRoll")){
+					isSquatRoll=false;
+				}
+				if(!isSquatRoll&&animator.GetCurrentAnimatorStateInfo(0).IsName("Squat")){
+					rollTime=0;
+				}
+				if(rollTime<=0){
 						isRoll=false;
-						characterCollider.height=ccoliderHeight;
-						characterCollider.center=Vector3.zero;
+						minimizeCollider(isSquat);
 					}
 				if(onGround){
 					if(isDive){
@@ -443,6 +465,11 @@ public class PlayerControl : MonoBehaviour
 					if(!isDive){
 						rollTime=0;
 					}
+				}
+			}else{
+				if(!befRoll){
+					isSquatRoll=false;
+					minimizeCollider(isSquat);
 				}
 			}
 			befRoll=isRoll;
@@ -474,6 +501,7 @@ public class PlayerControl : MonoBehaviour
 		}
 		animator.SetBool("Running",(move!=Vector2.zero));
 		animator.SetBool("OnGround",onGround);
+		animator.SetBool("Squat",isSquat);
 		befGround=onGround;
 	}
 	private void OnTriggerStay(Collider collision)
@@ -599,6 +627,15 @@ public class PlayerControl : MonoBehaviour
 			Quaternion CamRotate = RotateFromUpVector(upVector)* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
 			doStop1fCam=true;
 			CamTransform.localRotation *= Quaternion.Inverse(CamRotate)*CamTransform.rotation;
+		}
+	}
+	void minimizeCollider(bool isMinimize){
+		if(isMinimize){
+			characterCollider.height=0;
+			characterCollider.center=new Vector3(0,characterCollider.radius-ccoliderHeight/2,0);
+		}else{
+			characterCollider.height=ccoliderHeight;
+			characterCollider.center=Vector3.zero;
 		}
 	}
 }
