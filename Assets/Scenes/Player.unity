@@ -888,6 +888,26 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ExitGame
       objectReference: {fileID: 0}
+    - target: {fileID: 6700703466870150409, guid: bbdb5239afa7dc941a1a520234e87c41, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6700703466870150409, guid: bbdb5239afa7dc941a1a520234e87c41, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8407561834554285513, guid: bbdb5239afa7dc941a1a520234e87c41, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8407561834554285513, guid: bbdb5239afa7dc941a1a520234e87c41, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8407561834554285513, guid: bbdb5239afa7dc941a1a520234e87c41, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bbdb5239afa7dc941a1a520234e87c41, type: 3}
 --- !u!223 &2094314412 stripped

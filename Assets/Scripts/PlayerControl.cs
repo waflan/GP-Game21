@@ -17,6 +17,7 @@ public class PlayerControl : MonoBehaviour
 
 	public Animator animator = new Animator();
 	public CapsuleCollider characterCollider = new CapsuleCollider();
+	public PlayerSquatTrigger SquatTrigger;
 	public Canvas Menu = new Canvas();
 
 	// デバッグ用変数
@@ -26,16 +27,17 @@ public class PlayerControl : MonoBehaviour
 	// ここからアクション用変数
 
 		// ローカル変数
-	public float rx=0,ry=0; // カメラ方向(横,縦)
+	float rx=0,ry=0; // カメラ方向(横,縦)
 	Vector2 rotOffset=new Vector2();
 	bool cursorLock=true; // 
 	float camDist=1;
+	bool doStop1fCam=false;
 	Vector2 move =new Vector3();
 	float moveDirection,befMoveDirection=0;
 	Vector3 movingVelocity=new Vector3();
 	
-	[System.NonSerialized]
-	public bool onGround,jump,isRoll,befRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
+	// [System.NonSerialized]
+	public bool onGround,jump,isRoll,befRoll,isSquat,isSquatRoll,isDive,isMove,befGround,isMenu,isFocus,isCheck;
 	[System.NonSerialized]
 	public float radiusUpVector;
 	float tensorUp;
@@ -50,7 +52,8 @@ public class PlayerControl : MonoBehaviour
 	float ccoliderHeight;
 
 		// パブリック変数
-	public float speed=10; // 移動速度
+	public float moveSpeed=7; // 移動速度
+	public float squatMoveSpeed=2; // しゃがみ移動速度
 	[Range (0,1)]
 	public float footGripTime=.1f; // 地上での移動速度更新にかかる時間＆慣性速度の抵抗
 		[Range (0,3)]
@@ -60,12 +63,15 @@ public class PlayerControl : MonoBehaviour
 	public Vector2 rotateSpeed=new Vector2(270,180); // カメラ回転速度
 	public Vector2 mouseRotateSpeed=new Vector2(5,5); // マウスでのカメラ回転速度
 	public Vector2 camDistanceRange=new Vector2(1,10); // カメラの距離範囲
+	[Range(-2,2)]
+	public float camUpOffset = 0.5f; //カメラの中心を上にずらす量を指定
 	public Vector3 playerUpVector=Vector3.up; // プレイヤーの上方向(デフォルト：y軸方向)
 	[Range (0.1f,5)]
 	public float jumpMaxTime=1; // ジャンプの加速時間
 	public float firstJumpForce=300; // ジャンプ初動の力
 	public float secondJumpForce=200; // ジャンプ継続時の加速度
-	public float rollCoolTime=1; // 前転のクールタイム
+	public float rollCoolTime=.8f; // 前転のクールタイム
+	public float squatRollCoolTime=.4f; // 前転のクールタイム
 	public float rollForce=300; // 前転の力
 	public float diveForce=300; // 飛び込みの力
 	public bool able2Check=false; // 調べる機能のフラグ(外部から切り替え)
@@ -251,21 +257,34 @@ public class PlayerControl : MonoBehaviour
 
 			// 前転＆しゃがみ
 			if(Input.GetKey(keyConfig.roll)){
-				Vector3 horizontalVel=rig.velocity-(playerUpVector.normalized*Vector3.Dot(playerUpVector.normalized,rig.velocity));
+				// Vector3 horizontalVel=rig.velocity-(playerUpVector.normalized*Vector3.Dot(playerUpVector.normalized,rig.velocity));
 				if(!isRoll){
 					if(isMove){
-						if(Input.GetKeyDown(keyConfig.roll)){
+						if(Input.GetKeyDown(keyConfig.roll)&&!isSquat){
 							isRoll=true;
 							rollTime=rollCoolTime;
+						}else if(isSquat&&Input.GetKeyDown(keyConfig.jump)){
+							isRoll=isSquatRoll=true;
+							rollTime=squatRollCoolTime;
 						}
 					}else{
 						if(!onGround&&Input.GetKeyDown(keyConfig.roll)){
 							isRoll=true;
 							rollTime=rollCoolTime;
+						}else if(SquatTrigger.isOn&&Input.GetKeyDown(keyConfig.jump)){
+							isRoll=isSquatRoll=true;
+							rollTime=squatRollCoolTime;
 						}
 					}
 				}
-				
+				isSquat=onGround;
+			}else{
+				if(!isRoll&&isSquat&&Input.GetKeyDown(keyConfig.jump)){
+					// Debug.Log("hoge");
+					isRoll=isSquatRoll=true;
+					rollTime=squatRollCoolTime;
+				}
+				isSquat=onGround&&SquatTrigger.isOn;
 			}
 			
 		}
@@ -279,7 +298,7 @@ public class PlayerControl : MonoBehaviour
 			CamTransformParent.position = this.transform.position+CamTransformParent.rotation*(Vector3.back*5);
 			this.transform.rotation =toRotate;
 			if(move!=Vector2.zero){
-				rig.velocity=toRotate*Vector3.forward*speed;
+				rig.velocity=toRotate*Vector3.forward*moveSpeed;
 			}else{
 				rig.velocity=Vector3.zero;
 			}
@@ -288,6 +307,8 @@ public class PlayerControl : MonoBehaviour
 		}
 		else if(controlMode==0||controlMode==1){ // 一人称＆三人称視点操作
 
+			// 1f子カメラを止める(座標を一次保存＆最後戻す)
+			Vector3 CamPosOnStart= CamTransform.position;
 			// ずれた子カメラの座標＆回転を視点へ遷移させる。
 			if(CamTransform.localPosition!=Vector3.zero){
 				CamTransform.localPosition=Vector3.Lerp(CamTransform.localPosition,Vector3.zero,10*Time.deltaTime);
@@ -331,10 +352,15 @@ public class PlayerControl : MonoBehaviour
 				}else{
 					camDist=Mathf.Lerp(camDist,camToDist,4f*Time.deltaTime);
 				}
-				CamTransformParent.position=this.transform.position+(CamRotate*Vector3.back)*camDist;
+				CamTransformParent.position=this.transform.position+playerUpVector*((90-Mathf.Abs(ry))/90)*camUpOffset+(CamRotate*Vector3.back)*camDist;
 			}else{ // 一人称視点の場合
 				CamTransformParent.position=this.transform.position;
 				hideShowMesh(false);
+			}
+			// カメラを1f止める場合子カメラを前フレームに戻す
+			if(doStop1fCam){
+				CamTransform.position=CamPosOnStart;
+				doStop1fCam=false;
 			}
 			
 			// Debug.Log(positionToCamRotate(CamTransFormParent.position,transform.position,playerUpVector)+$":{rx},{ry}");
@@ -357,9 +383,11 @@ public class PlayerControl : MonoBehaviour
 				// 操作による速度を除く
 			Vector3 velocity = rig.velocity-movingVelocity;
 				// 操作による速度を更新
-			if(isMove){
+			if((isMove&&!(isSquat&&!isRoll))||(SquatTrigger.isOn&&isRoll)){
 				// movingVelocity=toRotate*Vector3.forward*speed;
-				movingVelocity=Vector3.Lerp(movingVelocity,toRotate*Vector3.forward*speed,Time.deltaTime/(onGround?footGripTime:airGripTime));
+				movingVelocity=Vector3.Lerp(movingVelocity,toRotate*Vector3.forward*moveSpeed,Time.deltaTime/(onGround?footGripTime:airGripTime));
+			}else if(isMove){
+				movingVelocity=Vector3.Lerp(movingVelocity,toRotate*Vector3.forward*squatMoveSpeed,Time.deltaTime/(onGround?footGripTime:airGripTime));
 			}else{
 				// movingVelocity=Vector3.zero;
 				movingVelocity=Vector3.Lerp(movingVelocity,Vector3.zero,Time.deltaTime/(onGround?footGripTime:airGripTime));
@@ -375,7 +403,7 @@ public class PlayerControl : MonoBehaviour
 			characterCollider.material.dynamicFriction=characterCollider.material.staticFriction=(onGround&&!isMove)?1:0;
 
 			// ジャンプの処理
-			if(onGround&&Input.GetKeyDown(keyConfig.jump)){
+			if(onGround&&((!isSquat||!isMove)&&!SquatTrigger.isOn)&&Input.GetKeyDown(keyConfig.jump)){
 				jump=true;
 				jumpTime=jumpMaxTime;
 				onGround=false;
@@ -398,8 +426,7 @@ public class PlayerControl : MonoBehaviour
 
 			// 前転の処理
 			if(isRoll){
-				characterCollider.height=0;
-				characterCollider.center=new Vector3(0,characterCollider.radius-ccoliderHeight/2,0);
+				minimizeCollider(true);
 				if(!befRoll){
 					animator.SetTrigger("Roll");
 					if(!onGround){
@@ -417,10 +444,15 @@ public class PlayerControl : MonoBehaviour
 						}
 					}
 				}
-				if(rollTime<0){
+				if(animator.GetCurrentAnimatorStateInfo(0).IsName("SquatRoll")){
+					isSquatRoll=false;
+				}
+				if(!isSquatRoll&&animator.GetCurrentAnimatorStateInfo(0).IsName("Squat")){
+					rollTime=0;
+				}
+				if(rollTime<=0){
 						isRoll=false;
-						characterCollider.height=ccoliderHeight;
-						characterCollider.center=Vector3.zero;
+						minimizeCollider(isSquat);
 					}
 				if(onGround){
 					if(isDive){
@@ -433,6 +465,11 @@ public class PlayerControl : MonoBehaviour
 					if(!isDive){
 						rollTime=0;
 					}
+				}
+			}else{
+				if(!befRoll){
+					isSquatRoll=false;
+					minimizeCollider(isSquat);
 				}
 			}
 			befRoll=isRoll;
@@ -464,6 +501,7 @@ public class PlayerControl : MonoBehaviour
 		}
 		animator.SetBool("Running",(move!=Vector2.zero));
 		animator.SetBool("OnGround",onGround);
+		animator.SetBool("Squat",isSquat);
 		befGround=onGround;
 	}
 	private void OnTriggerStay(Collider collision)
@@ -587,8 +625,17 @@ public class PlayerControl : MonoBehaviour
 			rx=camRot.x;
 			ry=camRot.y;
 			Quaternion CamRotate = RotateFromUpVector(upVector)* Quaternion.AngleAxis(rx,Vector3.up)*Quaternion.AngleAxis(ry,Vector3.right);
-			
+			doStop1fCam=true;
 			CamTransform.localRotation *= Quaternion.Inverse(CamRotate)*CamTransform.rotation;
+		}
+	}
+	void minimizeCollider(bool isMinimize){
+		if(isMinimize){
+			characterCollider.height=0;
+			characterCollider.center=new Vector3(0,characterCollider.radius-ccoliderHeight/2,0);
+		}else{
+			characterCollider.height=ccoliderHeight;
+			characterCollider.center=Vector3.zero;
 		}
 	}
 }
